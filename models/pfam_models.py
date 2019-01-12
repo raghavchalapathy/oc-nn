@@ -1,0 +1,913 @@
+
+
+import os
+
+cwd = os.getcwd()
+import sys
+
+sys.path.append(cwd)
+print cwd
+import tensorflow as tf
+import numpy as np
+# Import all the models functions
+from sklearn_OCSVM_model import sklearn_OCSVM_linear, sklearn_OCSVM_rbf
+from OneClass_NN_model import One_Class_NN_explicit_linear, One_Class_NN_explicit_sigmoid
+from  sklearn_OCSVM_rpca import sklearn__RPCA_OCSVM, sklearn_RPCA_OCSVM_Linear, sklearn_RPCA_OCSVM_rbf
+from sklearn_isolation_forest import sklearn_IsolationForest
+from LSTM_AE_OCSVM_models import LSTMAE_OCSVM_Linear, LSTMAE_OCSVM_RBF, AE_OCSVM_RBF, AE_OCSVM_Linear
+# from DBN2_OCSVM_models import DBN2_OCSVM_Linear,DBN2_OCSVM_RBF
+# from RDA_models import RDA
+# from RCAE_models import RCAE
+from tf_Cifar_OC_NN_Models import tf_OneClass_NN_linear, tf_OneClass_NN_sigmoid, tf_OneClass_NN_relu
+from keras.models import load_model
+import keras
+from keras.models import Model
+import keras
+from keras.layers import Dense
+from keras.layers import Dense, GlobalAveragePooling2D, Activation
+import time
+
+# Declare a dictionary to store the results
+df_pfam_scores = {}
+df_pfam_time = {}
+from imutils import paths
+import time
+
+nu = 0.2
+from itertools import izip_longest
+
+decision_scorePath = "/Users/raghav/Documents/Uni/oc-nn/Decision_Scores/pfam/"
+
+
+def write_decisionScores2Csv(path, filename, positiveScores, negativeScores):
+    newfilePath = path + filename
+    print "Writing file to ", path + filename
+    poslist = positiveScores.tolist()
+    neglist = negativeScores.tolist()
+
+    # rows = zip(poslist, neglist)
+    d = [poslist, neglist]
+    export_data = izip_longest(*d, fillvalue='')
+    with open(newfilePath, 'w') as myfile:
+        wr = csv.writer(myfile)
+        wr.writerow(("Normal", "Anomaly"))
+        wr.writerows(export_data)
+    myfile.close()
+
+    return
+
+
+def func_getDecision_Scores_pfam(dataset, data_train, data_test, data_train_biovec, data_test_biovec, data_train_ae,
+                                 data_test_ae):
+    print "Calling.....", func_getDecision_Scores_pfam
+
+    result = LSTMAE_OCSVM_Linear(data_train, data_test, nu)
+    df_pfam_scores["lstm_ocsvm-linear-Train"] = result[0]
+    df_pfam_scores["lstm_ocsvm-linear-Test"] = result[1]
+
+    df_pfam_time["lstm_ocsvm-linear-Train"] = result[2]
+    df_pfam_time["lstm_ocsvm-linear-Test"] = result[3]
+
+    print ("Finished lstm_ocsvmlinear")
+
+    result = LSTMAE_OCSVM_RBF(data_train, data_test, nu)
+    df_pfam_scores["lstm_ocsvm-rbf-Train"] = result[0]
+    df_pfam_scores["lstm_ocsvm-rbf-Test"] = result[1]
+
+    df_pfam_time["lstm_ocsvm-rbf-Train"] = result[2]
+    df_pfam_time["lstm_ocsvm-rbf-Test"] = result[3]
+
+    print ("Finished lstm_ocsvm-rbf")
+
+    result = tf_OneClass_LSTM_AE_NN_linear(data_train, data_test, nu)
+    df_pfam_scores["tf_OneClass_NN-Linear-Train"] = result[0]
+    df_pfam_scores["tf_OneClass_NN-Linear-Test"] = result[1]
+
+    df_pfam_time["tf_OneClass_NN-Linear-Train"] = result[2]
+    df_pfam_time["tf_OneClass_NN-Linear-Test"] = result[3]
+
+    print ("Finished tf_OneClass_NN_linear")
+
+    result = tf_OneClass_LSTM_AE_NN_sigmoid(data_train, data_test, nu)
+    df_pfam_scores["tf_OneClass_NN-Sigmoid-Train"] = result[0]
+    df_pfam_scores["tf_OneClass_NN-Sigmoid-Test"] = result[1]
+
+    df_pfam_time["tf_OneClass_NN-Sigmoid-Train"] = result[2]
+    df_pfam_time["tf_OneClass_NN-Sigmoid-Test"] = result[3]
+
+    print ("Finished tf_OneClass_NN_sigmoid")
+
+    result = tf_OneClass_LSTM_AE_NN_Relu(data_train, data_test, nu)
+    df_pfam_scores["tf_OneClass_NN-Relu-Train"] = result[0]
+    df_pfam_scores["tf_OneClass_NN-Relu-Test"] = result[1]
+
+    print ("Finished tf_OneClass_NN_sigmoid")
+
+    result = sklearn_OCSVM_linear(data_train_biovec, data_test_biovec, nu)
+    df_pfam_scores["sklearn-OCSVM-Linear-Train"] = result[0]
+    df_pfam_scores["sklearn-OCSVM-Linear-Test"] = result[1]
+
+    df_pfam_time["sklearn-OCSVM-Linear-Train"] = result[2]
+    df_pfam_time["sklearn-OCSVM-Linear-Test"] = result[3]
+
+    print ("Finished sklearn_OCSVM_linear")
+
+    result = sklearn_OCSVM_rbf(data_train_biovec, data_test_biovec, nu)
+    df_pfam_scores["sklearn-OCSVM-RBF-Train"] = result[0]
+    df_pfam_scores["sklearn-OCSVM-RBF-Test"] = result[1]
+
+    df_pfam_time["sklearn-OCSVM-RBF-Train"] = result[2]
+    df_pfam_time["sklearn-OCSVM-RBF-Test"] = result[3]
+    print ("Finished sklearn_OCSVM_RBF")
+
+    result = sklearn_RPCA_OCSVM_Linear(data_train_biovec, data_test_biovec, nu)
+    df_pfam_scores["rpca_ocsvm-Linear-Train"] = result[0]
+    df_pfam_scores["rpca_ocsvm-Linear-Test"] = result[1]
+
+    df_pfam_time["rpca_ocsvm-Linear-Train"] = result[2]
+    df_pfam_time["rpca_ocsvm-Linear-Test"] = result[3]
+
+    result = sklearn_RPCA_OCSVM_rbf(data_train_biovec, data_test_biovec, nu)
+    df_pfam_scores["rpca_ocsvm-rbf-Train"] = result[0]
+    df_pfam_scores["rpca_ocsvm-rbf-Test"] = result[1]
+
+    ## Pfam time
+    df_pfam_time["rpca_ocsvm-rbf-Train"] = result[2]
+    df_pfam_time["rpca_ocsvm-rbf-Test"] = result[3]
+
+    print ("Finished rpca_ocsvm")
+
+    result = sklearn_IsolationForest(data_train_biovec, data_test_biovec)
+    df_pfam_scores["isolation-forest-Train"] = result[0]
+    df_pfam_scores["isolation-forest-Test"] = result[1]
+
+    df_pfam_time["isolation-forest-Train"] = result[2]
+    df_pfam_time["isolation-forest-Test"] = result[3]
+
+    print ("Finished isolation-forest")
+
+    result = AE_OCSVM_Linear(data_train_ae, data_test_ae, nu)
+    df_pfam_scores["ae_svdd-linear-Train"] = result[0]
+    df_pfam_scores["ae_svdd-linear-Test"] = result[1]
+
+    df_pfam_time["ae_svdd-linear-Train"] = result[2]
+    df_pfam_time["ae_svdd-linear-Test"] = result[3]
+
+    print ("Finished ae_svdd-linear")
+
+    result = AE_OCSVM_RBF(data_train_ae, data_test_ae, nu)
+    df_pfam_scores["ae_svdd-rbf-Train"] = result[0]
+    df_pfam_scores["ae_svdd-rbf-Test"] = result[1]
+
+    df_pfam_time["ae_svdd-rbf-Train"] = result[2]
+    df_pfam_time["ae_svdd-rbf-Test"] = result[3]
+
+    print ("Finished ae_svdd-rbf")
+
+    # Write a CSV file for Cifar-10 data consisting of Methods, Train and test time
+    # Method, Train, Test
+    methods = ['OC-NN-Linear', 'OC-NN-Sigmoid', 'LSTM-AE-OCSVM-Linear', 'LSTM-AE-OCSVM-RBF', 'AE2-SVDD-Linear',
+               'AE2-SVDD-RBF', 'RPCA_OCSVM_linear', 'RPCA_OCSVM_rbf', 'Isolation_Forest', 'OCSVM-Linear', 'OCSVM-RBF']
+
+    write_training_test_results(df_pfam_time, methods)
+
+    return df_pfam_scores
+
+
+import csv
+
+
+def write_training_test_results(df_time, methods):
+    download_dir = "/Users/raghav/Documents/Uni/oc-nn/trainTest_Time/pfam_trainTest.csv"  # where you want the file to be downloaded to
+    print "Writing file to ", download_dir
+    csv = open(download_dir, "a")
+    for method in methods:
+        if (method == "OC-NN-Linear"):
+            row = method + "," + str(df_time["tf_OneClass_NN-Linear-Train"]) + "," + str(
+                df_time["tf_OneClass_NN-Linear-Test"]) + "\n"
+            csv.write(row)
+        if (method == "OC-NN-Sigmoid"):
+            row = method + "," + str(df_time["tf_OneClass_NN-Sigmoid-Train"]) + "," + str(
+                df_time["tf_OneClass_NN-Sigmoid-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "LSTM-AE-OCSVM-Linear"):
+            row = method + "," + str(df_time["lstm_ocsvm-linear-Train"]) + "," + str(
+                df_time["lstm_ocsvm-linear-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "LSTM-AE-OCSVM-RBF"):
+            row = method + "," + str(df_time["lstm_ocsvm-rbf-Train"]) + "," + str(df_time["lstm_ocsvm-rbf-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "AE2-SVDD-Linear"):
+            row = method + "," + str(df_time["ae_svdd-linear-Train"]) + "," + str(df_time["ae_svdd-linear-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "AE2-SVDD-RBF"):
+            row = method + "," + str(df_time["ae_svdd-rbf-Train"]) + "," + str(df_time["ae_svdd-rbf-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "OCSVM-Linear"):
+            row = method + "," + str(df_time["sklearn-OCSVM-Linear-Train"]) + "," + str(
+                df_time["sklearn-OCSVM-Linear-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "OCSVM-RBF"):
+            row = method + "," + str(df_time["sklearn-OCSVM-RBF-Train"]) + "," + str(
+                df_time["sklearn-OCSVM-RBF-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "RPCA_OCSVM_linear"):
+            row = method + "," + str(df_time["rpca_ocsvm-Linear-Train"]) + "," + str(
+                df_time["rpca_ocsvm-Linear-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "RPCA_OCSVM_rbf"):
+            row = method + "," + str(df_time["rpca_ocsvm-rbf-Train"]) + "," + str(df_time["rpca_ocsvm-rbf-Test"]) + "\n"
+            csv.write(row)
+
+        if (method == "Isolation_Forest"):
+            row = method + "," + str(df_time["isolation-forest-Train"]) + "," + str(
+                df_time["isolation-forest-Test"]) + "\n"
+            csv.write(row)
+
+    return
+
+
+def LSTMAE_OCSVM_RBF(data_train, data_test, nu):
+    # Preprocess the inputs
+    X = data_train
+    X_test = data_test
+
+    print X.shape
+    print X_test.shape
+
+    print("[INFO] preparing the network to extract flattened inputs(X,X_test) for scoring..... done!!!")
+    import matplotlib.pyplot as plt
+    from sklearn import svm
+    ocSVM = svm.OneClassSVM(nu=nu, kernel='rbf')
+    # ocSVM = svm.OneClassSVM(nu=nu, kernel='linear')
+    start_time = time.time()
+    ocSVM.fit(X)
+    trainTime = time.time() - start_time
+    activations = ["linear", "rbf"]
+    start_time = time.time()
+    pos_decisionScore = ocSVM.decision_function(X)
+    neg_decisionScore = ocSVM.decision_function(X_test)
+    testTime = time.time() - start_time
+    print pos_decisionScore
+    print neg_decisionScore
+
+    write_decisionScores2Csv(decision_scorePath, "LSTM_OCSVM_RBF.csv", pos_decisionScore, neg_decisionScore)
+
+    return [pos_decisionScore, neg_decisionScore, trainTime, testTime]
+
+
+def LSTMAE_OCSVM_Linear(data_train, data_test, nu):
+    # Preprocess the inputs
+    X = data_train
+    X_test = data_test
+
+    print X.shape
+    print X_test.shape
+
+    print("[INFO] preparing the network to extract flattened inputs(X,X_test) for scoring..... done!!!")
+    import matplotlib.pyplot as plt
+    from sklearn import svm
+    ocSVM = svm.OneClassSVM(nu=nu, kernel='linear')
+    # ocSVM = svm.OneClassSVM(nu=nu, kernel='linear')
+    start_time = time.time()
+    ocSVM.fit(X)
+    trainTime = time.time() - start_time
+    activations = ["linear", "rbf"]
+    start_time = time.time()
+    pos_decisionScore = ocSVM.decision_function(X)
+    neg_decisionScore = ocSVM.decision_function(X_test)
+    testTime = time.time() - start_time
+    print pos_decisionScore
+    print neg_decisionScore
+
+    write_decisionScores2Csv(decision_scorePath, "LSTM_OCSVM_Linear.csv", pos_decisionScore, neg_decisionScore)
+
+    return [pos_decisionScore, neg_decisionScore, trainTime, testTime]
+
+
+#
+# def add_new_last_layer(base_model_output,base_model_input):
+#   """Add last layer to the convnet
+#   Args:
+#     base_model: keras model excluding top
+#     nb_classes: # of classes
+#   Returns:
+#     new keras model with last layer
+#   """
+#   x = base_model_output
+#   print "base_model.output",x.shape
+#   inp = base_model_input
+#   print "base_model.input",inp.shape
+#   dense1 = Dense(512, name="dense_output1")(x)  # new sigmoid layer
+#   dense1out = Activation("relu", name="output_activation1")(dense1)
+#   dense2 = Dense(1, name="dense_output2")(dense1out) #new sigmoid layer
+#   dense2out = Activation("relu",name="output_activation2")(dense2)  # new sigmoid layer
+#   model = Model(inputs=inp, outputs=dense2out)
+#   return model
+
+
+def prepare_data_LSTM_AE_OCSVM(encodedDataPath):
+    # Basic libraries
+    import numpy as np
+    X = np.load(encodedDataPath)
+    train_encoded = X[0:50]
+    # test_encoded=  X[50:60]
+    a1 = X[50:51]
+    a2 = X[51:52]
+    a3 = X[52:53]
+    a4 = X[53:54]
+    a5 = X[54:55]
+    a6 = X[55:56]
+    a7 = X[56:57]
+    a8 = X[57:58]
+    a9 = X[58:59]
+    a10 = X[59:60]
+    # a1,a4,a9,a10,a7
+    # a8,a6,a5,a3,a2
+    anomalies = []
+    anomalies.append(a1)
+    anomalies.append(a4)
+    anomalies.append(a9)
+    anomalies.append(a10)
+    anomalies.append(a7)
+
+    test_encoded = np.asarray(anomalies)
+    test_encoded = np.reshape(test_encoded, (5, 240))
+    print "Encoded Training samples:", train_encoded.shape
+    print "Encoded Testing samples:", test_encoded.shape
+
+    import tensorflow as tf
+
+    # Preprocess the inputs
+    X = train_encoded
+    X_test = test_encoded
+
+    print X.shape
+    print X_test.shape
+
+    print X.shape
+    print X_test.shape
+
+    return [X, X_test]
+
+
+def tf_OneClass_LSTM_AE_NN_linear(data_train, data_test, nu):
+    tf.reset_default_graph()
+
+    RANDOM_SEED = 42
+    tf.set_random_seed(RANDOM_SEED)
+
+    train_X = data_train
+
+    # Layer's sizes
+    x_size = train_X.shape[1]  # Number of input nodes: 4 features and 1 bias
+    print  "Input Shape:", x_size
+    h_size = 24  # Number of hidden nodes
+    y_size = 1  # Number of outcomes (3 iris flowers)
+    D = x_size
+    K = h_size
+
+    theta = np.random.normal(0, 1, K + K * D + 1)
+    rvalue = np.random.normal(0, 1, (len(train_X), y_size))
+
+    def init_weights(shape):
+        """ Weight initialization """
+        weights = tf.random_normal(shape, mean=0, stddev=0.5)
+        return tf.Variable(weights)
+
+    def relu(x):
+        y = x
+
+        y = tf.nn.relu(x)
+
+        return y
+
+    def forwardprop(X, w_1, w_2):
+        """
+        Forward-propagation.
+        IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
+        """
+        X = tf.cast(X, tf.float32)
+        w_1 = tf.cast(w_1, tf.float32)
+        w_2 = tf.cast(w_2, tf.float32)
+        h = (tf.matmul(X, w_1))  #
+        yhat = tf.matmul(h, w_2)  # The \varphi function
+        return yhat
+
+    g = lambda x: x
+
+    def nnScore(X, w, V, g):
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w, tf.float32)
+        V = tf.cast(V, tf.float32)
+        return tf.matmul(g((tf.matmul(X, w))), V)
+
+    def relu1(x):
+        y = x
+        y = tf.nn.relu(x)
+        return y
+
+    def ocnn_obj(theta, X, nu, w1, w2, g, r):
+        w = w1
+        V = w2
+
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w1, tf.float32)
+        V = tf.cast(w2, tf.float32)
+
+        term1 = 0.5 * tf.reduce_sum(w ** 2)
+        term2 = 0.5 * tf.reduce_sum(V ** 2)
+
+        # term3 = 1 / nu * tf.reduce_mean(tf.nn.relu(r - nnScore(X, w, V, g)))
+        term3 = 1 / nu * tf.reduce_mean(tf.maximum(0.0, r - nnScore(X, w, V, g)))
+
+        term4 = -r
+
+        return term1 + term2 + term3 + term4
+
+    # For testing the algorithm
+    test_X = data_test
+
+    # Symbols
+    X = tf.placeholder("float32", shape=[None, x_size])
+
+    r = tf.get_variable("r", dtype=tf.float32, shape=(), trainable=False)
+
+    # Weight initializations
+    w_1 = init_weights((x_size, h_size))
+    w_2 = init_weights((h_size, y_size))
+
+    # Forward propagation
+    # yhat    = forwardprop(X, w_1, w_2)
+    # predict = tf.argmax(yhat, axis=1)
+
+
+    # Backward propagation
+    # cost    = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+    cost = ocnn_obj(theta, X, nu, w_1, w_2, g, r)
+
+    updates = tf.train.AdamOptimizer(1e-1).minimize(cost)
+
+    # Run optimization routine after initialization
+    sess = tf.Session()
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    rvalue = 0.01
+    start_time = time.time()
+    for epoch in range(100):
+        # with sess.as_default():
+        #     w_t = w_2.eval()
+
+        sess.run(updates, feed_dict={X: train_X, r: rvalue})
+
+        with sess.as_default():
+            w1 = w_1.eval()
+            w2 = w_2.eval()
+            # w_t_1 = w2
+            maxvalue = np.max(w2)
+        rvalue = nnScore(train_X, w1, w2, g)
+
+        with sess.as_default():
+            rvalue = rvalue.eval()
+            rvalue = np.percentile(rvalue, q=100 * nu)
+        print("Epoch = %d, r = %f"
+              % (epoch + 1, rvalue))
+        # print("maxvalue = %d, maxvalue = %f"
+        #       % (epoch + 1, maxvalue))
+
+    trainTime = time.time() - start_time
+    ### Get the optimized weights here
+
+    start_time = time.time()
+    train = nnScore(train_X, w_1, w_2, g)
+    test = nnScore(test_X, w_1, w_2, g)
+
+    testTime = time.time() - start_time
+    with sess.as_default():
+        arrayTrain = train.eval()
+        arrayTest = test.eval()
+    # rstar = r.eval()
+
+    rstar = rvalue
+    sess.close()
+    print "Session Closed!!!"
+
+    pos_decisionScore = arrayTrain - rstar
+    pos_decisionScore[pos_decisionScore < 0] = 0
+    neg_decisionScore = arrayTest - rstar
+
+    write_decisionScores2Csv(decision_scorePath, "/OneClass_LSTM_AE_NN_linear.csv", pos_decisionScore,
+                             neg_decisionScore)
+
+    return [pos_decisionScore, neg_decisionScore, trainTime, testTime]
+
+
+def tf_OneClass_LSTM_AE_NN_sigmoid(data_train, data_test, nu):
+    tf.reset_default_graph()
+    sess = tf.Session()
+
+    train_X = data_train
+
+    RANDOM_SEED = 42
+    tf.set_random_seed(RANDOM_SEED)
+
+    # Layer's sizes
+    x_size = train_X.shape[1]  # Number of input nodes: 4 features and 1 bias
+    print  "Input Shape:", x_size
+    h_size = 24  # Number of hidden nodes
+    y_size = 1  # Number of outcomes (3 iris flowers)
+    D = x_size
+    K = h_size
+
+    theta = np.random.normal(0, 1, K + K * D + 1)
+    rvalue = np.random.normal(0, 1, (len(train_X), y_size))
+
+    def init_weights(shape):
+        """ Weight initialization """
+        weights = tf.random_normal(shape, mean=0, stddev=0.1)
+        return tf.Variable(weights)
+
+    def forwardprop(X, w_1, w_2):
+        """
+        Forward-propagation.
+        IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
+        """
+        X = tf.cast(X, tf.float32)
+        w_1 = tf.cast(w_1, tf.float32)
+        w_2 = tf.cast(w_2, tf.float32)
+        h = tf.nn.sigmoid(tf.matmul(X, w_1))  # The \sigma function
+        yhat = tf.matmul(h, w_2)  # The \varphi function
+        return yhat
+
+    g = lambda x: 1 / (1 + tf.exp(-x))
+
+    def nnScore(X, w, V, g):
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w, tf.float32)
+        V = tf.cast(V, tf.float32)
+        return tf.matmul(g((tf.matmul(X, w))), V)
+
+    def relu(x):
+        y = tf.nn.relu(x)
+
+        return y
+
+    def ocnn_obj(theta, X, nu, w1, w2, g, r):
+        w = w1
+        V = w2
+
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w1, tf.float32)
+        V = tf.cast(w2, tf.float32)
+
+        term1 = 0.5 * tf.reduce_sum(w ** 2)
+        term2 = 0.5 * tf.reduce_sum(V ** 2)
+        # term3 = 1 / nu * tf.reduce_mean(relu(r - nnScore(X, w, V, g)))
+        term3 = 1 / nu * tf.reduce_mean(tf.maximum(0.0, r - nnScore(X, w, V, g)))
+
+        term4 = -r
+
+        return term1 + term2 + term3 + term4
+
+    # For testing the algorithm
+    test_X = data_test
+
+    # Symbols
+    X = tf.placeholder("float32", shape=[None, x_size])
+
+    r = tf.get_variable("r", dtype=tf.float32, shape=(), trainable=False)
+
+    # Weight initializations
+    w_1 = init_weights((x_size, h_size))
+    w_2 = init_weights((h_size, y_size))
+
+    # Forward propagation
+    yhat = forwardprop(X, w_1, w_2)
+    predict = tf.argmax(yhat, axis=1)
+
+    # Backward propagation
+    # cost    = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+    cost = ocnn_obj(theta, X, nu, w_1, w_2, g, r)
+    # updates = tf.train.GradientDescentOptimizer(0.006).minimize(cost)
+    updates = tf.train.AdamOptimizer(1e-1).minimize(cost)
+
+    # Run SGD
+
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    rvalue = 0.01
+    start_time = time.time()
+
+    for epoch in range(100):
+        # Train with each example
+        # with sess.as_default():
+        #     w_t = w_2.eval()
+
+
+        sess.run(updates, feed_dict={X: train_X, r: rvalue})
+
+        with sess.as_default():
+            w1 = w_1.eval()
+            w2 = w_2.eval()
+            w_t_1 = w2
+            maxvalue = np.max(w2)
+        rvalue = nnScore(train_X, w1, w2, g)
+
+        with sess.as_default():
+            rvalue = rvalue.eval()
+            rvalue = np.percentile(rvalue, q=100 * nu)
+        print("Epoch = %d, r = %f"
+              % (epoch + 1, rvalue))
+        # print("maxvalue = %d, maxvalue = %f"
+        #       % (epoch + 1, maxvalue))
+    trainTime = time.time() - start_time
+
+    with sess.as_default():
+        w1 = w_1.eval()
+        w2 = w_2.eval()
+
+    start_time = time.time()
+    train = nnScore(train_X, w1, w2, g)
+    test = nnScore(test_X, w1, w2, g)
+
+    testTime = time.time() - start_time
+    with sess.as_default():
+        arrayTrain = train.eval()
+        arrayTest = test.eval()
+    # rstar = r.eval()
+
+    rstar = rvalue
+    sess.close()
+    print "Session Closed!!!"
+
+    pos_decisionScore = arrayTrain - rstar
+    pos_decisionScore[pos_decisionScore < 0] = 0  ## Clip all the negative values to zero
+    neg_decisionScore = arrayTest - rstar
+
+    write_decisionScores2Csv(decision_scorePath, "/OneClass_LSTM_AE_NN_Sigmoid.csv", pos_decisionScore,
+                             neg_decisionScore)
+
+    return [pos_decisionScore, neg_decisionScore, trainTime, testTime]
+
+
+def tf_OneClass_LSTM_AE_NN_Relu(data_train, data_test, nu):
+    tf.reset_default_graph()
+    sess = tf.Session()
+
+    train_X = data_train
+
+    RANDOM_SEED = 42
+    tf.set_random_seed(RANDOM_SEED)
+
+    # Layer's sizes
+    x_size = train_X.shape[1]  # Number of input nodes: 4 features and 1 bias
+    print  "Input Shape:", x_size
+    h_size = 24  # Number of hidden nodes
+    y_size = 1  # Number of outcomes (3 iris flowers)
+    D = x_size
+    K = h_size
+
+    theta = np.random.normal(0, 1, K + K * D + 1)
+    rvalue = np.random.normal(0, 1, (len(train_X), y_size))
+
+    def init_weights(shape):
+        """ Weight initialization """
+        weights = tf.random_normal(shape, mean=0, stddev=0.1)
+        return tf.Variable(weights)
+
+    def forwardprop(X, w_1, w_2):
+        """
+        Forward-propagation.
+        IMPORTANT: yhat is not softmax since TensorFlow's softmax_cross_entropy_with_logits() does that internally.
+        """
+        X = tf.cast(X, tf.float32)
+        w_1 = tf.cast(w_1, tf.float32)
+        w_2 = tf.cast(w_2, tf.float32)
+        h = tf.nn.sigmoid(tf.matmul(X, w_1))  # The \sigma function
+        yhat = tf.matmul(h, w_2)  # The \varphi function
+        return yhat
+
+    g = lambda x: relu(x)
+
+    def nnScore(X, w, V, g):
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w, tf.float32)
+        V = tf.cast(V, tf.float32)
+        return tf.matmul(g((tf.matmul(X, w))), V)
+
+    def relu(x):
+        y = tf.nn.relu(x)
+
+        return y
+
+    def ocnn_obj(theta, X, nu, w1, w2, g, r):
+        w = w1
+        V = w2
+
+        X = tf.cast(X, tf.float32)
+        w = tf.cast(w1, tf.float32)
+        V = tf.cast(w2, tf.float32)
+
+        term1 = 0.5 * tf.reduce_sum(w ** 2)
+        term2 = 0.5 * tf.reduce_sum(V ** 2)
+        term3 = 1 / nu * tf.reduce_mean(relu(r - nnScore(X, w, V, g)))
+
+        term4 = -r
+
+        return term1 + term2 + term3 + term4
+
+    # For testing the algorithm
+    test_X = data_test
+
+    # Symbols
+    X = tf.placeholder("float32", shape=[None, x_size])
+
+    r = tf.get_variable("r", dtype=tf.float32, shape=(), trainable=False)
+
+    # Weight initializations
+    w_1 = init_weights((x_size, h_size))
+    w_2 = init_weights((h_size, y_size))
+
+    # Forward propagation
+    yhat = forwardprop(X, w_1, w_2)
+    predict = tf.argmax(yhat, axis=1)
+
+    # Backward propagation
+    # cost    = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=yhat))
+    cost = ocnn_obj(theta, X, nu, w_1, w_2, g, r)
+    # updates = tf.train.GradientDescentOptimizer(0.006).minimize(cost)
+    updates = tf.train.AdamOptimizer(1e-2).minimize(cost)
+
+    # Run SGD
+
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    rvalue = 0.1
+    for epoch in range(10):
+        # Train with each example
+        sess.run(updates, feed_dict={X: train_X, r: rvalue})
+        with sess.as_default():
+            w1 = w_1.eval()
+            w2 = w_2.eval()
+        rvalue = nnScore(train_X, w1, w2, g)
+
+        with sess.as_default():
+            rvalue = rvalue.eval()
+            rvalue = np.percentile(rvalue, q=100 * nu)
+        print("Epoch = %d, r = %f"
+              % (epoch + 1, rvalue))
+
+    diff = 0
+    epoch = 0
+    # while((diff) <= 0.0000001):
+    #     # Train with each example
+    #     r_previous = rvalue
+    #     sess.run(updates, feed_dict={X: train_X, r: rvalue})
+    #     with sess.as_default():
+    #         w1 = w_1.eval()
+    #         w2 = w_2.eval()
+    #     rvalue = nnScore(train_X, w1, w2, g)
+    #
+    #     epoch = epoch+ 1
+    #     with sess.as_default():
+    #         rvalue = rvalue.eval()
+    #         rvalue = np.percentile(rvalue, q=100 * nu)
+    #         diff = rvalue -r_previous
+    #     print("Epoch = %d, r = %f"
+    #           % (epoch + 1, rvalue))
+
+    with sess.as_default():
+        w1 = w_1.eval()
+        w2 = w_2.eval()
+
+    train = nnScore(train_X, w1, w2, g)
+    test = nnScore(test_X, w1, w2, g)
+    with sess.as_default():
+        arrayTrain = train.eval()
+        arrayTest = test.eval()
+    # rstar = r.eval()
+
+    rstar = rvalue
+    sess.close()
+    print "Session Closed!!!"
+
+    pos_decisionScore = arrayTrain - rstar
+    pos_decisionScore[pos_decisionScore < 0] = 0  ## Clip all the negative values to zero
+    neg_decisionScore = arrayTest - rstar
+
+    return [pos_decisionScore, neg_decisionScore]
+
+
+def add_new_last_layer(base_model_output, base_model_input):
+    """Add last layer to the convnet
+    Args:
+      base_model: keras model excluding top
+      nb_classes: # of classes
+    Returns:
+      new keras model with last layer
+    """
+    x = base_model_output
+    print "base_model.output", x.shape
+    inp = base_model_input
+    print "base_model.input", inp.shape
+    dense1 = Dense(16, name="dense_output1")(x)  # new sigmoid layer
+    dense1out = Activation("relu", name="output_activation1")(dense1)
+    dense2 = Dense(1, name="dense_output2")(dense1out)  # new sigmoid layer
+    dense2out = Activation("relu", name="output_activation2")(dense2)  # new sigmoid layer
+    model = Model(inputs=inp, outputs=dense2out)
+    return model
+
+
+def prepare_pfam_data_for_ocsvm_isolationForest(data_path, biovecModelPath):
+    import biovec
+    import numpy as np
+    # pv = biovec.ProtVec("some_fasta_file.fasta", out="output_corpusfile_path.txt")
+    # pv["QAT"]
+    # pv.to_vecs("ATATQSQSMTEEL")
+    # pv.save('model_file_path')
+    import pandas as pd
+    from sklearn.preprocessing import MinMaxScaler
+
+    # train_path = "/Users/raghav/Documents/Uni/oc-nn/models/transfer_learning/lstm_autoencoders/data/testout.csv"
+    train_path = data_path
+    protein_data = pd.read_csv(train_path, header=None, sep="\t")
+    result = protein_data[0]
+    print len(result)
+
+    pv2 = biovec.models.load_protvec(biovecModelPath)
+    protein_vectors = []
+    for i in range(0, len(result)):
+        # print result[i]
+        vec = pv2.to_vecs(result[i])
+        protein_vectors.append(vec[0])
+
+    x_train = np.asarray(protein_vectors)
+
+    print x_train.shape
+
+    train_encoded = x_train[0:50]
+    test_encoded = x_train[54:59]
+    print "Encoded Training samples:", train_encoded.shape
+    print "Encoded Testing samples:", test_encoded.shape
+
+    # Preprocess the inputs
+    X = train_encoded
+    X_test = test_encoded
+
+    print X.shape
+    print X_test.shape
+
+    # Preprocess the inputs
+    X = train_encoded
+    X_test = test_encoded
+
+    print X.shape
+    print X_test.shape
+
+    return [X, X_test]
+
+
+def encode_pfam_data_for_ae_ocsvm(data_train, data_test, modelpath):
+    NB_IV3_LAYERS_TO_FREEZE = 4
+
+    # load the trained convolutional neural network freeze all the weights except for last four layers
+    print("[INFO] loading network...")
+    model = load_model(modelpath)
+    model = add_new_last_layer(model.output, model.input)
+    print(model.summary())
+    print "Length of model layers...", len(model.layers)
+
+    # Freeze the weights of untill the last four layers
+    for layer in model.layers[:NB_IV3_LAYERS_TO_FREEZE]:
+        layer.trainable = False
+    for layer in model.layers[NB_IV3_LAYERS_TO_FREEZE:]:
+        layer.trainable = True
+    print("[INFO] loading images for training...")
+
+    # Preprocess the inputs
+    data_train
+    data_test
+
+    ## Obtain the intermediate output
+    layer_name = 'dense_2'
+    intermediate_layer_model = Model(inputs=model.input,
+                                     outputs=model.get_layer(layer_name).output)
+
+    layer1 = model.get_layer("dense_output1")
+    layer2 = model.get_layer("dense_output2")
+    intermediate_output = intermediate_layer_model.predict(data_train)
+    data_train = intermediate_output
+    intermediate_output = intermediate_layer_model.predict(data_test)
+    data_test = intermediate_output
+
+    return [data_train, data_test]
+
+
