@@ -277,7 +277,6 @@ print("========================================================================"
 ### MNIST
 Example of the  most normal (left) and  most anomalous (right) test set examples per class on MNIST according to One Class Neural Networks and Robust Convolution Autoencoder (RCAE) anomaly scores.
 
-![img](http://i.imgur.com/yourfilename.png)
 
 
 ![img](/results/mnist_rcae.png)
