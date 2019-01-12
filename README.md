@@ -280,15 +280,16 @@ Example of the  most normal (left) and  most anomalous (right) test set examples
 ![img](http://i.imgur.com/yourfilename.png)
 
 
+![img](/results/mnist_rcae.png)
 
-
+![img](/results/mnist_ocnn.png)
 
 
 ### CIFAR-10
 Example of the  most normal (left) and  most anomalous (right) test set examples per class on CIFAR-10 according to One Class Neural Networks and Robust Convolution Autoencoder (RCAE) anomaly scores.
 
 
-![img](http://i.imgur.com/yourfilename.png)
+![img](/results/cifar10.png)
 
 
 
