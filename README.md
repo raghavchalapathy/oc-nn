@@ -10,13 +10,11 @@ You find a PDF of the **One Class Neural Network paper** at:
 If you use our work, please also cite the paper:
 
 ```
- @inproceedings{chalapathy2017robust,
- title={Robust, deep and inductive anomaly detection},
- author={Chalapathy, Raghavendra and Menon, Aditya Krishna and Chawla, Sanjay},
- booktitle={Joint European Conference on Machine Learning and Knowledge Discovery in Databases},
- pages={36--51},
- year={2017},
- organization={Springer}
+@article{chalapathy2018anomaly,
+  title={Anomaly Detection using One-Class Neural Networks},
+  author={Chalapathy, Raghavendra and Menon, Aditya Krishna and Chawla, Sanjay},
+  journal={arXiv preprint arXiv:1802.06360 },
+  year={2018}
 }
 ```
 
