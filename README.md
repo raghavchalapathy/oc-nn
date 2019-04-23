@@ -6,7 +6,7 @@ This repository provides a Keras-Tensorflow implementation of the One Class Neur
 # Citations and Contact.
 
 You find a PDF of the **One Class Neural Network paper** at:
-
+https://arxiv.org/pdf/1802.06360.pdf
 If you use our work, please also cite the paper:
 
 ```
